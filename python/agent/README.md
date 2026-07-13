@@ -15,15 +15,28 @@ A tool-using agent that answers questions like
 User Query
     │
     ▼
-┌─────────────────────┐
-│   Agent Loop         │  ── tool_use ──►  Tool Runtime
-│   (L message → LLM   │  ◄── result ──  (get_weather / calculator)
-│    ↑ until text)     │
-└─────────┬───────────┘
-          │ final text
+┌─────────────────────────────────────────────────────┐
+│  run_agent() loop                                   │
+│                                                     │
+│  ┌──────────┐   tools + history    ┌────────────┐  │
+│  │  LLM      │ ◄───────────────── │  messages[]  │  │
+│  │ (Claude)  │ ─── tool_use ────► │              │  │
+│  │ (planner) │                    │  append      │  │
+│  └─────┬─────┘                    │  result as   │  │
+│        │                          │  "user" role │  │
+│        ▼ tool_use                 └──────────────┘  │
+│  ┌──────────────┐                                   │
+│  │  Tool Runtime│  get_weather() / calculator()     │
+│  └──────┬───────┘                                   │
+│         │ result                                    │
+└─────────┼───────────────────────────────────────────┘
+          │ final text (no tool_use blocks)
           ▼
-      Answer
-```
+       Answer
+
+## Supported Cities
+
+`get_weather` currently supports: New York, Delhi, London, Tokyo, Paris, Sydney.
 
 ## Tools
 
@@ -44,9 +57,27 @@ pip install -r python/agent/requirements.txt
 # Set your Anthropic API key
 export ANTHROPIC_API_KEY=sk-...
 
-# Run — answer: "What is the sum of the temperature in New York and Delhi?"
+# Run with a CLI argument
+python python/agent/weather_agent.py "What is the sum of temperature in New York and Delhi?"
+
+# Or run interactively — you'll be prompted for a query
 python python/agent/weather_agent.py
 ```
+
+## Message Flow
+
+The Anthropic Messages API uses only `"user"` and `"assistant"` roles (no `"tool"` role). Tool results are wrapped in a `"user"` message with `type: "tool_result"`:
+
+```
+user:      "What is the sum of temperature in New York and Delhi?"
+assistant: tool_use(id="abc", name="get_weather", input={city: "New York"})
+user:      tool_result(tool_use_id="abc", content={temp: 28.3})
+assistant: tool_use(id="def", name="calculator", input={expr: "28.3 + 31.6"})
+user:      tool_result(tool_use_id="def", content={result: 59.9})
+assistant: "The sum is 59.9°C"
+```
+
+Each `tool_result` links back to its `tool_use` via `tool_use_id`. The `"user"` role is just the container — the `type: "tool_result"` field tells the API it's a tool response, not free-form user text.
 
 ## Extending
 

@@ -1,4 +1,15 @@
-# Python — Data Structures & Algorithms
+# Python
+
+A collection of Python modules exploring different domains — from data structures and algorithms to AI agent patterns and deep learning.
+
+## Modules
+
+| Module | Description |
+|--------|-------------|
+| [**agent**](agent/README.md) | Tool-using AI agent that answers questions using a weather API and calculator — demonstrates the LLM tool-calling (function calling) pattern |
+| [**datastructures**](datastructures/) | Data structures & algorithms problems (arrays, two-pointers, etc.) |
+| [**deeplearning**](deeplearning/README.md) | Deep learning fundamentals — NumPy, Pandas, PyTorch, TensorFlow, Keras, CNNs, RNNs, transfer learning |
+| [**finetuning**](finetuning/) | Model fine-tuning experiments |
 
 ## Setup
 
@@ -38,3 +49,5 @@ Or run in one line without leaving the current shell activated:
 ```bash
 source .venv/bin/activate && python datastructures/arrays.py
 ```
+
+Some modules (like `agent/`) have their own additional dependencies — see their inner READMEs for details.
