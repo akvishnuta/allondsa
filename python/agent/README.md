@@ -1,7 +1,14 @@
-# AI Agent: Weather + Calculator
+# Agents: Weather + Calculator
 
-A tool-using agent that answers questions like  
+Tool-using agents that answer questions like  
 *"What is the sum of the temperature in New York and Delhi?"*
+
+Two implementations showing different frameworks:
+
+| File | Framework | Pattern |
+|------|-----------|---------|
+| `weather_agent.py` | **Anthropic SDK** (vanilla) | Manual agent loop: send → tool_use → execute → repeat |
+| `weather_agent_langgraph.py` | **LangGraph** | State-graph: nodes (call_llm ↔ execute_tools) + conditional routing |
 
 ## Architecture
 
