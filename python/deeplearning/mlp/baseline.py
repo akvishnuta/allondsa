@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import time
+from sklearn.model_selection import train_test_split
 class BaseLineModel:
     def __init__(self, learning_rate=0.01, n_iterations=1000):
         self.lr = learning_rate
@@ -15,9 +17,49 @@ class BaseLineModel:
         return z if z>0 else 0
     
     def fit(self, X, y):
-        
-        return
+        m,n = X.shape()
+        self.w = np.zeros(n)
+        self.b = 0
+
+        for epoch in range(self.n_iterations):
+            indices = np.random.permutation(m)
+            X_shuffled = X[indices]
+            y_shuffled = y[indices]
+
+            epoch_loss = 0
+
+            for i in range(m):
+                x_i = X_shuffled[i]
+                y_i = y_shuffled[i]
+
+                z = np.dot(x_i, self.w) + self.b
+
+                y_hat = self.sigmoid(z)
+
+                #clipping y_hat so as to avoid log(1) = 0 in later steps
+                y_hat = np.clip(y_hat, 1e-8, 1-1e-8)
+
+                #calculate loss
+                loss = -(y_i * np.log(y_hat) + (1-y_i)*np.log(1-y_hat))
+
+                epoch_loss +=loss
+
+                dw = (y_hat - y_i) * x_i
+                db = (y_hat - y_i)
+
+
+                #Parameter update
+                self.w -= self.lr * dw
+                self.b -= self.lr * db
+
+            self.loss_history.append(epoch_loss/m)    
+        return self
     
+    def predict(self, X, y):
+        z = np.dot(X, self.w) + self.b
+
+        y_hat = 1 if (self.sigmoid(z)>0.5) else 0
+        return y_hat
 
 
 
@@ -58,6 +100,9 @@ class DataExtractor:
         return X,y
     
 
+    
+
+    
 
 
 
@@ -83,8 +128,30 @@ def main():
     X,y = dataExtractor.preprocess(df)
 
 
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
     base_line = BaseLineModel(FILE_PATH, COLUMN_NAMES)
     
+    # Train baseline model
+    print("Training baseline model...")
+    baseline_start = time.time()
+    
+    base_line.fit(X_train, y_train)
+
+    
+    baseline_predictions = base_line.predict(X_test)
+
+
+
+    baseline_training_time = time.time() - baseline_start
+    print(f"✓ Baseline training completed in {baseline_training_time:.2f}s")
+    print(f"✓ Loss decreased from {base_line.loss_history[0]:.4f} to {base_line.loss_history[-1]:.4f}")
+
+    # Store loss explicitly
+    baseline_initial_loss = base_line.loss_history[0]
+    baseline_final_loss = base_line.loss_history[-1]
 
 
 if __name__ == "__main__":
